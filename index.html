@@ -11,111 +11,276 @@
 body {
   margin:0;
   font-family:Arial;
-  background:linear-gradient(180deg,#0a001f,#000);
+  background: radial-gradient(circle,#0f0026,#000);
   color:white;
+  display:flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width:200px;
+  background:#0a001f;
+  height:100vh;
+  padding:20px;
+}
+.sidebar h2 { color:#00ffc3; }
+.sidebar div {
+  margin:15px 0;
+  cursor:pointer;
+}
+
+/* MAIN */
+.main {
+  flex:1;
 }
 
 /* HEADER */
 .header {
   display:flex;
   justify-content:space-between;
-  align-items:center;
   padding:15px;
 }
+
 .wallet {
-  background:#00e6c3;
-  padding:10px 15px;
+  background:#00ffc3;
+  padding:10px;
   border-radius:10px;
   color:black;
-  font-weight:bold;
+  cursor:pointer;
 }
 
 /* HERO */
 .hero {
-  padding:20px;
   text-align:center;
 }
-
-/* STATS */
-.stats {
-  display:flex;
-  justify-content:space-around;
-  margin:20px;
-}
-.stat { text-align:center; }
-
-/* GAME CARDS */
-.card {
-  margin:20px;
-  padding:20px;
+.hero img {
+  width:120px;
   border-radius:15px;
+}
+
+/* GRID */
+.grid {
+  padding:20px;
+}
+
+.card {
   background:rgba(255,255,255,0.05);
+  border-radius:20px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 0 20px rgba(0,255,200,0.3);
+  transition:0.3s;
+}
+.card:hover {
+  transform:scale(1.03);
 }
 
 .play {
-  background:#00e6c3;
+  margin-top:10px;
+  background:#00ffc3;
+  color:black;
   padding:12px;
   border-radius:10px;
   text-align:center;
-  color:black;
-  margin-top:10px;
   cursor:pointer;
+}
+
+/* LEADERBOARD */
+.leaderboard {
+  padding:20px;
+}
+.entry {
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  border-bottom:1px solid #333;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <h2>MONET ARCADE</h2>
-  <div class="wallet" onclick="connectWallet()">Connect Wallet</div>
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>MONET</h2>
+  <div onclick="showSection('arcade')">🎮 Arcade</div>
+  <div onclick="showSection('leaderboard')">🏆 Leaderboard</div>
+  <div onclick="showSection('rewards')">🎁 Rewards</div>
 </div>
+
+<!-- MAIN -->
+<div class="main">
+
+<div class="header">
+  <div>MONET ARCADE</div>
+  <div class="wallet" id="walletBtn" onclick="connectWallet()">Connect</div>
+</div>
+
+<div id="arcade">
 
 <div class="hero">
+  <img src="assets/monetmario.jpg">
   <h1>THE ARCADE</h1>
-  <p>Pay MONET or SOL. Earn rewards.</p>
 </div>
 
-<div class="stats">
-  <div class="stat">Players<br><b>5</b></div>
-  <div class="stat">Games<br><b>27</b></div>
-  <div class="stat">Rewarded<br><b>14</b></div>
+<div class="grid">
+  <div class="card">
+    <h3>MONET MARIO</h3>
+    <div class="play" onclick="play('mario')">PLAY</div>
+  </div>
+
+  <div class="card">
+    <h3>MONET RUSH</h3>
+    <div class="play" onclick="play('rush')">PLAY</div>
+  </div>
+
+  <div class="card">
+    <h3>MONEY MUNCH</h3>
+    <div class="play" onclick="play('munch')">PLAY</div>
+  </div>
 </div>
 
-<div class="card">
-  <h3>MONET MARIO</h3>
-  <p>Race for the MONET pot</p>
-  <div class="play" onclick="play('mario')">PLAY NOW</div>
 </div>
 
-<div class="card">
-  <h3>MONET RUSH</h3>
-  <p>Run and dodge crashes</p>
-  <div class="play" onclick="play('rush')">PLAY NOW</div>
+<!-- LEADERBOARD -->
+<div id="leaderboard" style="display:none;">
+  <h2 style="padding:20px;">🏆 Leaderboard</h2>
+  <div id="board"></div>
+</div>
+
+<!-- REWARDS -->
+<div id="rewards" style="display:none;">
+  <h2 style="padding:20px;">🎁 Rewards</h2>
+  <p style="padding:20px;">Coming soon: Earn MONET for high scores</p>
+</div>
+
 </div>
 
 <script>
-let wallet;
+let wallet = null;
 
+// WALLET
 async function connectWallet(){
+  if (!window.solana || !window.solana.isPhantom) {
+    alert("Use Phantom browser");
+    return;
+  }
   const resp = await window.solana.connect();
-  wallet = resp.publicKey;
-  alert("Wallet connected");
+  wallet = resp.publicKey.toString();
+  document.getElementById("walletBtn").innerText =
+    wallet.slice(0,4)+"..."+wallet.slice(-4);
 }
 
-async function play(game){
+// NAV
+function showSection(id){
+  document.getElementById("arcade").style.display="none";
+  document.getElementById("leaderboard").style.display="none";
+  document.getElementById("rewards").style.display="none";
+  document.getElementById(id).style.display="block";
+}
+
+// PLAY
+function play(game){
   if(!wallet){
     alert("Connect wallet first");
     return;
   }
 
-  // 🔥 placeholder for your backend payment endpoint
-  console.log("Trigger payment for:", game);
+  // fake score for demo
+  let score = Math.floor(Math.random()*100);
 
-  // redirect after payment (hook your real game routes)
-  window.location.href = "/game/" + game;
+  saveScore(wallet, score);
+
+  window.location.href = "games/"+game+".html";
 }
+
+// LEADERBOARD STORAGE
+function saveScore(wallet, score){
+  let data = JSON.parse(localStorage.getItem("scores")||"[]");
+  data.push({wallet, score});
+  data.sort((a,b)=>b.score-a.score);
+  data = data.slice(0,10);
+  localStorage.setItem("scores", JSON.stringify(data));
+  renderBoard();
+}
+
+function renderBoard(){
+  let data = JSON.parse(localStorage.getItem("scores")||"[]");
+  let html="";
+  data.forEach((e,i)=>{
+    html += `<div class="entry">
+      <span>#${i+1}</span>
+      <span>${e.wallet.slice(0,4)}...${e.wallet.slice(-4)}</span>
+      <span>${e.score}</span>
+    </div>`;
+  });
+  document.getElementById("board").innerHTML = html;
+}
+
+renderBoard();
 </script>
 
+
+<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+
+<style>
+.wallet-btn {
+  background: linear-gradient(135deg,#00ffcc,#33ff88);
+  color:#000;
+  padding:12px 20px;
+  border-radius:10px;
+  font-weight:bold;
+  border:none;
+  cursor:pointer;
+  box-shadow:0 0 15px rgba(0,255,150,0.5);
+}
+.wallet-btn:hover { transform: scale(1.05); }
+</style>
+
+<script>
+let provider = null;
+
+async function connectWallet() {
+  try {
+    if (window.solana </body></body> window.solana.isPhantom) {
+      provider = window.solana;
+      const resp = await provider.connect();
+      updateUI(resp.publicKey.toString());
+      return;
+    }
+
+    if (window.solflare) {
+      provider = window.solflare;
+      await provider.connect();
+      updateUI(provider.publicKey.toString());
+      return;
+    }
+
+    if (window.backpack) {
+      provider = window.backpack;
+      await provider.connect();
+      updateUI(provider.publicKey.toString());
+      return;
+    }
+
+    alert("No wallet found. Install Phantom / Solflare / Backpack");
+    window.open("https://phantom.app/", "_blank");
+
+  } catch (err) {
+    console.error("Wallet error:", err);
+  }
+}
+
+function updateUI(address) {
+  const btn = document.getElementById("connect-wallet");
+  if (!btn) return;
+  btn.innerText = address.slice(0,4) + "..." + address.slice(-4);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("connect-wallet");
+  if (btn) btn.addEventListener("click", connectWallet);
+});
+</script>
 </body>
 </html>

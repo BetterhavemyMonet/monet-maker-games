@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Monet Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      background:radial-gradient(circle,#0b0b0f,#1a0033);
+      color:#00ffa3;
+      font-family:Orbitron, Arial;
+      text-align:center;
+      padding:40px;
+    }
+    button {
+      padding:15px 20px;
+      margin:10px;
+      font-size:18px;
+      border:none;
+      border-radius:10px;
+      background:#00ffa3;
+      color:#000;
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>💵 Monet Tap Game</h1>
+
+<button id="startBtn">Start Game</button>
+
+<h2 id="timer">10</h2>
+<h2 id="score">Score: 0</h2>
+
+<button id="tapBtn" disabled>TAP</button>
+
+<script>
+let score = 0;
+let timeLeft = 10;
+let interval;
+
+document.getElementById("startBtn").onclick = function() {
+  score = 0;
+  timeLeft = 10;
+
+  document.getElementById("score").innerText = "Score: 0";
+  document.getElementById("tapBtn").disabled = false;
+
+  interval = setInterval(function(){
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      document.getElementById("tapBtn").disabled = true;
+      alert("Game Over! Score: " + score);
+    }
+  }, 1000);
+};
+
+document.getElementById("tapBtn").onclick = function() {
+  score++;
+  document.getElementById("score").innerText = "Score: " + score;
+};
+</script>
+
+</body>
+</html>
+
+<script>
+
+function getProvider() {
+}
+
+  var provider = getProvider();
+
+  if (!provider) {
+    return;
+  }
+
+  provider.connect().then(function(res){
+  }).catch(function(){
+    alert("Connection failed");
+  });
+}
+
+// Inject UI safely
+document.body.insertAdjacentHTML("afterbegin",
+);
+</script>
+
+
+<script>
+function getProvider() {
+  return null;
+}
+
+  const provider = getProvider();
+
+  if (!provider) {
+    return;
+  }
+
+  provider.connect()
+    .then(res => {
+    })
+    .catch(() => alert("Connection failed"));
+}
+</script>
+
+
+<script>
+// Override start button safely
+document.getElementById("startBtn").onclick = function() {
+    return;
+  }
+
+  score = 0;
+  timeLeft = 10;
+
+  document.getElementById("score").innerText = "Score: 0";
+  document.getElementById("tapBtn").disabled = false;
+
+  interval = setInterval(function(){
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      document.getElementById("tapBtn").disabled = true;
+      alert("Game Over! Score: " + score);
+    }
+  }, 1000);
+};
+</script>
+
+
+<script>
+async function payToPlay() {
+  if (!provider) {
+    alert("Wallet not found");
+    return false;
+  }
+
+
+      fromPubkey: provider.publicKey,
+      lamports: 10000 // tiny amount for testing
+    })
+  );
+
+  tx.feePayer = provider.publicKey;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await provider.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  await connection.confirmTransaction(sig);
+
+  return true;
+}
+
+// Override start again (payment + game)
+document.getElementById("startBtn").onclick = async function() {
+    return;
+  }
+
+  try {
+    await payToPlay();
+  } catch (e) {
+    alert("Payment failed");
+    return;
+  }
+
+  score = 0;
+  timeLeft = 10;
+
+  document.getElementById("score").innerText = "Score: 0";
+  document.getElementById("tapBtn").disabled = false;
+
+  interval = setInterval(function(){
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      document.getElementById("tapBtn").disabled = true;
+      alert("Game Over! Score: " + score);
+    }
+  }, 1000);
+};
+</script>
+
+
+
+
+<script>
+async function payWithMonet(amount) {
+  if (!provider) {
+    return false;
+  }
+
+
+  const user = provider.publicKey;
+
+      fromPubkey: user,
+      toPubkey: treasury,
+      lamports: 10000 // TEMP (we’ll replace with MONET SPL next if needed)
+    })
+  );
+
+  tx.feePayer = user;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await provider.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  await connection.confirmTransaction(sig);
+
+  return true;
+}
+
+// Override start button
+document.getElementById("startBtn").onclick = async function() {
+    return;
+  }
+
+  try {
+    await payWithMonet(1);
+  } catch(e) {
+    alert("Payment failed");
+    return;
+  }
+
+  score = 0;
+  timeLeft = 10;
+
+  document.getElementById("score").innerText = "Score: 0";
+  document.getElementById("tapBtn").disabled = false;
+
+  interval = setInterval(function(){
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      document.getElementById("tapBtn").disabled = true;
+      saveScore(score);
+      alert("Game Over! Score: " + score);
+    }
+  }, 1000);
+};
+</script>
+
+
+<script>
+function saveScore(score) {
+  let scores = JSON.parse(localStorage.getItem("monetScores") || "[]");
+
+  scores.push({ score: score, time: Date.now() });
+
+  scores.sort((a,b)=>b.score-a.score);
+  scores = scores.slice(0,5);
+
+  localStorage.setItem("monetScores", JSON.stringify(scores));
+  renderLeaderboard();
+}
+
+function renderLeaderboard() {
+  let scores = JSON.parse(localStorage.getItem("monetScores") || "[]");
+
+  let html = "<h3>🏆 Top Scores</h3>";
+  scores.forEach((s,i)=>{
+    html += `<p>#${i+1} - ${s.score}</p>`;
+  });
+
+  document.getElementById("leaderboard").innerHTML = html;
+}
+
+document.body.insertAdjacentHTML("beforeend", '<div id="leaderboard"></div>');
+renderLeaderboard();
+</script>
+
+
+<script>
+async function payWithMonet(amount) {
+  if (!provider) {
+    alert("Wallet not found");
+    return false;
+  }
+
+
+  const user = provider.publicKey;
+
+
+  function getATA(owner) {
+      [owner.toBuffer(), TOKEN_PROGRAM.toBuffer(), mint.toBuffer()],
+      ATA_PROGRAM
+    )[0];
+  }
+
+  const userATA = getATA(user);
+  const treasuryATA = getATA(treasury);
+
+  const amountRaw = BigInt(amount) * 1000000000n; // 9 decimals
+
+  const data = new Uint8Array([
+    3,
+    ...new Uint8Array(new BigUint64Array([amountRaw]).buffer)
+  ]);
+
+      keys: [
+        { pubkey: userATA, isSigner: false, isWritable: true },
+        { pubkey: treasuryATA, isSigner: false, isWritable: true },
+        { pubkey: user, isSigner: true, isWritable: false }
+      ],
+      programId: TOKEN_PROGRAM,
+      data: data
+    })
+  );
+
+  tx.feePayer = user;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await provider.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  await connection.confirmTransaction(sig);
+
+  return true;
+}
+</script>
+
+
+
+<script>
+async function payWithMonet(amount) {
+  if (!provider) {
+    alert("Wallet not found");
+    return false;
+  }
+
+
+  const user = provider.publicKey;
+
+  const userATA = await splToken.getAssociatedTokenAddress(mint, user);
+  const treasuryATA = await splToken.getAssociatedTokenAddress(mint, treasury);
+
+
+  // Create treasury ATA if missing
+  const treasuryInfo = await connection.getAccountInfo(treasuryATA);
+  if (!treasuryInfo) {
+    tx.add(
+      splToken.createAssociatedTokenAccountInstruction(
+        user,
+        treasuryATA,
+        treasury,
+        mint
+      )
+    );
+  }
+
+  // Transfer MONET
+  tx.add(
+    splToken.createTransferInstruction(
+      userATA,
+      treasuryATA,
+      user,
+      amount * 1_000_000_000 // 9 decimals
+    )
+  );
+
+  tx.feePayer = user;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await provider.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  await connection.confirmTransaction(sig);
+
+  return true;
+}
+</script>
+
+
+<script>
+async function payWithMonet(amount) {
+  try {
+
+
+    const user = provider.publicKey;
+
+    const userATA = await splToken.getAssociatedTokenAddress(mint, user);
+    const treasuryATA = await splToken.getAssociatedTokenAddress(mint, treasury);
+
+
+    // Ensure USER ATA exists
+    const userInfo = await connection.getAccountInfo(userATA);
+    if (!userInfo) {
+      tx.add(
+        splToken.createAssociatedTokenAccountInstruction(
+          user,
+          userATA,
+          user,
+          mint
+        )
+      );
+    }
+
+    // Ensure TREASURY ATA exists
+    const treasuryInfo = await connection.getAccountInfo(treasuryATA);
+    if (!treasuryInfo) {
+      tx.add(
+        splToken.createAssociatedTokenAccountInstruction(
+          user,
+          treasuryATA,
+          treasury,
+          mint
+        )
+      );
+    }
+
+    // Transfer instruction
+    tx.add(
+      splToken.createTransferInstruction(
+        userATA,
+        treasuryATA,
+        user,
+        amount * 1_000_000_000
+      )
+    );
+
+    tx.feePayer = user;
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+    const signed = await provider.signTransaction(tx);
+    const sig = await connection.sendRawTransaction(signed.serialize());
+
+    await connection.confirmTransaction(sig, "confirmed");
+
+    return true;
+
+  } catch (e) {
+    console.log("PAY ERROR:", e);
+    alert("Payment failed: " + e);
+    return false;
+  }
+}
+</script>
+
+
+<script>
+async function payWithMonet() {
+    return false;
+  }
+
+  // Open Jupiter swap with MONET prefilled
+  const url = "https://jup.ag/swap/SOL-6eACLGXCGdw9D5zb5eBKyFnFNTX9pTihDEpZQ7gYAX1b";
+
+  window.open(url, "_blank");
+
+  alert("Complete swap/payment, then return to play");
+
+  return true;
+}
+
+// Override start button
+document.getElementById("startBtn").onclick = async function() {
+    return;
+  }
+
+  await payWithMonet();
+
+  // Start game AFTER user returns
+  score = 0;
+  timeLeft = 10;
+
+  document.getElementById("score").innerText = "Score: 0";
+  document.getElementById("tapBtn").disabled = false;
+
+  interval = setInterval(function(){
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      document.getElementById("tapBtn").disabled = true;
+      saveScore(score);
+      alert("Game Over! Score: " + score);
+    }
+  }, 1000);
+};
+</script>
+
+
+<script>
+async function payWithMonet() {
+    return false;
+  }
+
+  // Open Jupiter swap with MONET prefilled
+  const url = "https://jup.ag/swap/SOL-6eACLGXCGdw9D5zb5eBKyFnFNTX9pTihDEpZQ7gYAX1b";
+
+  window.open(url, "_blank");
+
+  alert("Complete swap/payment, then return to play");
+
+  return true;
+}
+
+// Override start button
+document.getElementById("startBtn").onclick = async function() {
+    return;
+  }
+
+  await payWithMonet();
+
+  // Start game AFTER user returns
+  score = 0;
+  timeLeft = 10;
+
+  document.getElementById("score").innerText = "Score: 0";
+  document.getElementById("tapBtn").disabled = false;
+
+  interval = setInterval(function(){
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      document.getElementById("tapBtn").disabled = true;
+      saveScore(score);
+      alert("Game Over! Score: " + score);
+    }
+  }, 1000);
+};
+</script>
+
+
+<script>
+
+  if (!provider) {
+    // Deep link into Phantom
+    const url = encodeURIComponent(window.location.href);
+    return;
+  }
+
+  provider.connect().then(res => {
+  }).catch(() => alert("Connection failed"));
+}
+</script>
+
+
+<script>
+async function payAndPlay() {
+    return;
+  }
+
+  const swapUrl = "https://jup.ag/swap/SOL-6eACLGXCGdw9D5zb5eBKyFnFNTX9pTihDEpZQ7gYAX1b";
+
+  window.open(swapUrl, "_blank");
+
+  const confirmed = confirm("After completing payment, click OK to start the game.");
+
+  if (!confirmed) return;
+
+  // Start game
+  score = 0;
+  timeLeft = 10;
+
+  document.getElementById("score").innerText = "Score: 0";
+  document.getElementById("tapBtn").disabled = false;
+
+  interval = setInterval(function(){
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      document.getElementById("tapBtn").disabled = true;
+      saveScore(score);
+      alert("Game Over! Score: " + score);
+    }
+  }, 1000);
+}
+
+// Replace start button behavior
+document.getElementById("startBtn").onclick = payAndPlay;
+</script>
+
+
+<script>
+function startGameFlow() {
+  const swapUrl = "https://jup.ag/swap/SOL-6eACLGXCGdw9D5zb5eBKyFnFNTX9pTihDEpZQ7gYAX1b";
+
+  window.open(swapUrl, "_blank");
+
+  const confirmed = confirm("After getting MONET, click OK to play.");
+
+  if (!confirmed) return;
+
+  let score = 0;
+  let timeLeft = 10;
+
+  document.getElementById("score").innerText = "Score: 0";
+  document.getElementById("tapBtn").disabled = false;
+
+  const interval = setInterval(function(){
+    timeLeft--;
+    document.getElementById("timer").innerText = timeLeft;
+
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      document.getElementById("tapBtn").disabled = true;
+      alert("Game Over! Score: " + score);
+    }
+  }, 1000);
+
+  document.getElementById("tapBtn").onclick = function() {
+    score++;
+    document.getElementById("score").innerText = "Score: " + score;
+  };
+}
+
+// Override button
+document.getElementById("startBtn").onclick = startGameFlow;
+</script>
+
