@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monet Arcade</title>
+
+<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+
+<style>
+body {
+  margin:0;
+  font-family:Arial;
+  background:linear-gradient(180deg,#0a001f,#000);
+  color:white;
+}
+
+/* HEADER */
+.header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px;
+}
+.wallet {
+  background:#00e6c3;
+  padding:10px 15px;
+  border-radius:10px;
+  color:black;
+  font-weight:bold;
+}
+
+/* HERO */
+.hero {
+  padding:20px;
+  text-align:center;
+}
+
+/* STATS */
+.stats {
+  display:flex;
+  justify-content:space-around;
+  margin:20px;
+}
+.stat { text-align:center; }
+
+/* GAME CARDS */
+.card {
+  margin:20px;
+  padding:20px;
+  border-radius:15px;
+  background:rgba(255,255,255,0.05);
+}
+
+.play {
+  background:#00e6c3;
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+  color:black;
+  margin-top:10px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h2>MONET ARCADE</h2>
+  <div class="wallet" onclick="connectWallet()">Connect Wallet</div>
+</div>
+
+<div class="hero">
+  <h1>THE ARCADE</h1>
+  <p>Pay MONET or SOL. Earn rewards.</p>
+</div>
+
+<div class="stats">
+  <div class="stat">Players<br><b>5</b></div>
+  <div class="stat">Games<br><b>27</b></div>
+  <div class="stat">Rewarded<br><b>14</b></div>
+</div>
+
+<div class="card">
+  <h3>MONET MARIO</h3>
+  <p>Race for the MONET pot</p>
+  <div class="play" onclick="play('mario')">PLAY NOW</div>
+</div>
+
+<div class="card">
+  <h3>MONET RUSH</h3>
+  <p>Run and dodge crashes</p>
+  <div class="play" onclick="play('rush')">PLAY NOW</div>
+</div>
+
+<script>
+let wallet;
+
+async function connectWallet(){
+  const resp = await window.solana.connect();
+  wallet = resp.publicKey;
+  alert("Wallet connected");
+}
+
+async function play(game){
+  if(!wallet){
+    alert("Connect wallet first");
+    return;
+  }
+
+  // 🔥 placeholder for your backend payment endpoint
+  console.log("Trigger payment for:", game);
+
+  // redirect after payment (hook your real game routes)
+  window.location.href = "/game/" + game;
+}
+</script>
+
+</body>
+</html>
