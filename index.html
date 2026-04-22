@@ -242,6 +242,112 @@ let provider = null;
 
 async function connectWallet() {
   try {
+<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+
+<style>
+.game-btn {
+  background: linear-gradient(135deg,#00ffcc,#33ff88);
+  color:#000;
+  padding:12px 20px;
+  border-radius:10px;
+  font-weight:bold;
+  border:none;
+  margin:10px;
+  cursor:pointer;
+  box-shadow:0 0 15px rgba(0,255,150,0.5);
+}
+.game-btn:hover { transform: scale(1.05); }
+</style>
+
+<script>
+const TREASURY = "REPLACE_WITH_YOUR_WALLET";
+const ENTRY_FEE = 0.1;
+
+let wallet = null;
+let pot = Number(localStorage.getItem("monet_pot") || 0);
+
+function updatePotUI(){
+  const el = document.getElementById("pot-display");
+  if(el) el.innerText = "Pot: " + pot.toFixed(2) + " SOL";
+}
+
+async function connectWallet(){
+  if(window.solana){
+    const resp = await window.solana.connect();
+    wallet = resp.publicKey;
+    document.getElementById("connect-wallet").innerText =
+      wallet.toString().slice(0,4)+"..."+wallet.toString().slice(-4);
+  } else {
+    alert("Install Phantom wallet");
+    window.open("https://phantom.app","_blank");
+  }
+}
+
+async function enterGame(){
+  if(!wallet){ alert("Connect wallet first"); return;}
+
+  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
+
+  const tx = new solanaWeb3.Transaction().add(
+    solanaWeb3.SystemProgram.transfer({
+      fromPubkey: wallet,
+      toPubkey: new solanaWeb3.PublicKey(TREASURY),
+      lamports: ENTRY_FEE * solanaWeb3.LAMPORTS_PER_SOL,
+    })
+  );
+
+  tx.feePayer = wallet;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await window.solana.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  pot += ENTRY_FEE;
+  localStorage.setItem("monet_pot", pot);
+  updatePotUI();
+
+  alert("Entered game! TX: " + sig);
+}
+
+async function payWinner(){
+  const winner = prompt("Enter winner wallet address:");
+  if(!winner) return;
+
+  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
+
+  const winnerAmount = pot * 0.8;
+
+  const tx = new solanaWeb3.Transaction().add(
+    solanaWeb3.SystemProgram.transfer({
+      fromPubkey: wallet,
+      toPubkey: new solanaWeb3.PublicKey(winner),
+      lamports: winnerAmount * solanaWeb3.LAMPORTS_PER_SOL,
+    })
+  );
+
+  tx.feePayer = wallet;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await window.solana.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  pot = 0;
+  localStorage.setItem("monet_pot", pot);
+  updatePotUI();
+
+  alert("Winner paid! TX: " + sig);
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  updatePotUI();
+  const c = document.getElementById("connect-wallet");
+  if(c) c.onclick = connectWallet;
+});
+</script>
+
+<div id="pot-display" style="color:#00ffcc;font-weight:bold;margin:10px;">Pot: 0 SOL</div>
+<button class="game-btn" onclick="enterGame()">Enter Game (0.1 SOL)</button>
+<button class="game-btn" onclick="payWinner()">Pay Winner</button>
     if (window.solana </body></body> window.solana.isPhantom) {
       provider = window.solana;
       const resp = await provider.connect();
@@ -282,5 +388,111 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btn) btn.addEventListener("click", connectWallet);
 });
 </script>
+<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
+
+<style>
+.game-btn {
+  background: linear-gradient(135deg,#00ffcc,#33ff88);
+  color:#000;
+  padding:12px 20px;
+  border-radius:10px;
+  font-weight:bold;
+  border:none;
+  margin:10px;
+  cursor:pointer;
+  box-shadow:0 0 15px rgba(0,255,150,0.5);
+}
+.game-btn:hover { transform: scale(1.05); }
+</style>
+
+<script>
+const TREASURY = "REPLACE_WITH_YOUR_WALLET";
+const ENTRY_FEE = 0.1;
+
+let wallet = null;
+let pot = Number(localStorage.getItem("monet_pot") || 0);
+
+function updatePotUI(){
+  const el = document.getElementById("pot-display");
+  if(el) el.innerText = "Pot: " + pot.toFixed(2) + " SOL";
+}
+
+async function connectWallet(){
+  if(window.solana){
+    const resp = await window.solana.connect();
+    wallet = resp.publicKey;
+    document.getElementById("connect-wallet").innerText =
+      wallet.toString().slice(0,4)+"..."+wallet.toString().slice(-4);
+  } else {
+    alert("Install Phantom wallet");
+    window.open("https://phantom.app","_blank");
+  }
+}
+
+async function enterGame(){
+  if(!wallet){ alert("Connect wallet first"); return;}
+
+  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
+
+  const tx = new solanaWeb3.Transaction().add(
+    solanaWeb3.SystemProgram.transfer({
+      fromPubkey: wallet,
+      toPubkey: new solanaWeb3.PublicKey(TREASURY),
+      lamports: ENTRY_FEE * solanaWeb3.LAMPORTS_PER_SOL,
+    })
+  );
+
+  tx.feePayer = wallet;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await window.solana.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  pot += ENTRY_FEE;
+  localStorage.setItem("monet_pot", pot);
+  updatePotUI();
+
+  alert("Entered game! TX: " + sig);
+}
+
+async function payWinner(){
+  const winner = prompt("Enter winner wallet address:");
+  if(!winner) return;
+
+  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
+
+  const winnerAmount = pot * 0.8;
+
+  const tx = new solanaWeb3.Transaction().add(
+    solanaWeb3.SystemProgram.transfer({
+      fromPubkey: wallet,
+      toPubkey: new solanaWeb3.PublicKey(winner),
+      lamports: winnerAmount * solanaWeb3.LAMPORTS_PER_SOL,
+    })
+  );
+
+  tx.feePayer = wallet;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await window.solana.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  pot = 0;
+  localStorage.setItem("monet_pot", pot);
+  updatePotUI();
+
+  alert("Winner paid! TX: " + sig);
+}
+
+document.addEventListener("DOMContentLoaded", ()=>{
+  updatePotUI();
+  const c = document.getElementById("connect-wallet");
+  if(c) c.onclick = connectWallet;
+});
+</script>
+
+<div id="pot-display" style="color:#00ffcc;font-weight:bold;margin:10px;">Pot: 0 SOL</div>
+<button class="game-btn" onclick="enterGame()">Enter Game (0.1 SOL)</button>
+<button class="game-btn" onclick="payWinner()">Pay Winner</button>
 </body>
 </html>
