@@ -389,6 +389,22 @@ async function enterGame() {
 
   alert("Entry confirmed! TX: " + sig);
 }
+<script>
+async function autoPayout(winnerAddress){
+  const res = await fetch("/api/payout", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ winner: winnerAddress })
+  });
+
+  const data = await res.json();
+  alert("Payout TX: " + data.sig);
+}
+</script>
+
+<button class="game-btn" onclick="autoPayout(prompt('Winner wallet:'))">
+  End Game & Pay Winner
+</button>
     if (window.solana </body></body> window.solana.isPhantom) {
       provider = window.solana;
       const resp = await provider.connect();
@@ -576,5 +592,21 @@ async function enterGame() {
 
   alert("Entry confirmed! TX: " + sig);
 }
+<script>
+async function autoPayout(winnerAddress){
+  const res = await fetch("/api/payout", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ winner: winnerAddress })
+  });
+
+  const data = await res.json();
+  alert("Payout TX: " + data.sig);
+}
+</script>
+
+<button class="game-btn" onclick="autoPayout(prompt('Winner wallet:'))">
+  End Game & Pay Winner
+</button>
 </body>
 </html>
