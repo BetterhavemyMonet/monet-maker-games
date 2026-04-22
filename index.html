@@ -348,6 +348,47 @@ document.addEventListener("DOMContentLoaded", ()=>{
 <div id="pot-display" style="color:#00ffcc;font-weight:bold;margin:10px;">Pot: 0 SOL</div>
 <button class="game-btn" onclick="enterGame()">Enter Game (0.1 SOL)</button>
 <button class="game-btn" onclick="payWinner()">Pay Winner</button>
+async function enterGame() {
+  if (!window.solana) {
+    alert("Connect wallet first");
+    return;
+  }
+
+  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
+  const provider = window.solana;
+
+  const resp = await provider.connect();
+  const wallet = resp.publicKey;
+
+  const tx = new solanaWeb3.Transaction().add(
+    solanaWeb3.SystemProgram.transfer({
+      fromPubkey: wallet,
+      toPubkey: new solanaWeb3.PublicKey(TREASURY),
+      lamports: ENTRY_FEE * solanaWeb3.LAMPORTS_PER_SOL,
+    })
+  );
+
+  tx.feePayer = wallet;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await provider.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  // ✅ VERIFY TRANSACTION BEFORE ADDING TO POT
+  await connection.confirmTransaction(sig, "confirmed");
+
+  // ✅ Send to backend ONLY after confirmed
+  await fetch("/api/pot", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      amount: ENTRY_FEE,
+      tx: sig
+    })
+  });
+
+  alert("Entry confirmed! TX: " + sig);
+}
     if (window.solana </body></body> window.solana.isPhantom) {
       provider = window.solana;
       const resp = await provider.connect();
@@ -494,5 +535,46 @@ document.addEventListener("DOMContentLoaded", ()=>{
 <div id="pot-display" style="color:#00ffcc;font-weight:bold;margin:10px;">Pot: 0 SOL</div>
 <button class="game-btn" onclick="enterGame()">Enter Game (0.1 SOL)</button>
 <button class="game-btn" onclick="payWinner()">Pay Winner</button>
+async function enterGame() {
+  if (!window.solana) {
+    alert("Connect wallet first");
+    return;
+  }
+
+  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
+  const provider = window.solana;
+
+  const resp = await provider.connect();
+  const wallet = resp.publicKey;
+
+  const tx = new solanaWeb3.Transaction().add(
+    solanaWeb3.SystemProgram.transfer({
+      fromPubkey: wallet,
+      toPubkey: new solanaWeb3.PublicKey(TREASURY),
+      lamports: ENTRY_FEE * solanaWeb3.LAMPORTS_PER_SOL,
+    })
+  );
+
+  tx.feePayer = wallet;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+  const signed = await provider.signTransaction(tx);
+  const sig = await connection.sendRawTransaction(signed.serialize());
+
+  // ✅ VERIFY TRANSACTION BEFORE ADDING TO POT
+  await connection.confirmTransaction(sig, "confirmed");
+
+  // ✅ Send to backend ONLY after confirmed
+  await fetch("/api/pot", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      amount: ENTRY_FEE,
+      tx: sig
+    })
+  });
+
+  alert("Entry confirmed! TX: " + sig);
+}
 </body>
 </html>
