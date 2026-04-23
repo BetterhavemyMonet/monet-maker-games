@@ -625,3 +625,45 @@ function startGameFlow() {
 document.getElementById("startBtn").onclick = startGameFlow;
 </script>
 
+
+<script>
+// 🔗 Monet auto-hook injected
+
+// try to get wallet automatically
+function getPlayerWallet(){
+  try {
+    return window.parent?.solana?.publicKey?.toString() ||
+           window.solana?.publicKey?.toString();
+  } catch(e){
+    return null;
+  }
+}
+
+// trigger payout
+function monetEndGame(){
+  const winner = getPlayerWallet();
+
+  if (!winner) {
+    alert("Wallet not connected");
+    return;
+  }
+
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: "MONET_GAME_END",
+        winner: winner
+      }, "*");
+    } else if (typeof endGame === "function") {
+      endGame(winner);
+    }
+  } catch(e){
+    console.error(e);
+  }
+}
+
+// ⚡ fallback auto-end (30 seconds if game doesn't call it)
+setTimeout(() => {
+  monetEndGame();
+}, 30000);
+</script>
