@@ -5,406 +5,56 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Monet Arcade</title>
 
-<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
-
 <style>
 body {
-  margin:0;
-  font-family:Arial;
-  background: radial-gradient(circle,#0f0026,#000);
-  color:white;
-  display:flex;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#020024,#090979,#00d4ff);
+  color: white;
+  text-align: center;
 }
 
-/* SIDEBAR */
-.sidebar {
-  width:200px;
-  background:#0a001f;
-  height:100vh;
-  padding:20px;
-}
-.sidebar h2 { color:#00ffc3; }
-.sidebar div {
-  margin:15px 0;
-  cursor:pointer;
+.container {
+  padding: 20px;
 }
 
-/* MAIN */
-.main {
-  flex:1;
+button {
+  background: linear-gradient(135deg,#00ffcc,#33ff88);
+  color: black;
+  padding: 14px 20px;
+  margin: 10px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 220px;
 }
 
-/* HEADER */
-.header {
-  display:flex;
-  justify-content:space-between;
-  padding:15px;
+button:hover {
+  transform: scale(1.05);
 }
 
-.wallet {
-  background:#00ffc3;
-  padding:10px;
-  border-radius:10px;
-  color:black;
-  cursor:pointer;
-}
-
-/* HERO */
-.hero {
-  text-align:center;
-}
-.hero img {
-  width:120px;
-  border-radius:15px;
-}
-
-/* GRID */
-.grid {
-  padding:20px;
-}
-
-.card {
-  background:rgba(255,255,255,0.05);
-  border-radius:20px;
-  padding:20px;
-  margin-bottom:20px;
-  box-shadow:0 0 20px rgba(0,255,200,0.3);
-  transition:0.3s;
-}
-.card:hover {
-  transform:scale(1.03);
-}
-
-.play {
-  margin-top:10px;
-  background:#00ffc3;
-  color:black;
-  padding:12px;
-  border-radius:10px;
-  text-align:center;
-  cursor:pointer;
-}
-
-/* LEADERBOARD */
-.leaderboard {
-  padding:20px;
-}
-.entry {
-  display:flex;
-  justify-content:space-between;
-  padding:10px;
-  border-bottom:1px solid #333;
+#pot-display {
+  margin: 20px;
+  font-size: 20px;
+  font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
-<div class="sidebar">
-  <h2>MONET</h2>
-  <div onclick="showSection('arcade')">🎮 Arcade</div>
-  <div onclick="showSection('leaderboard')">🏆 Leaderboard</div>
-  <div onclick="showSection('rewards')">🎁 Rewards</div>
+<div class="container">
+  <h1>🎮 Monet Arcade</h1>
+
+  <button id="connect-wallet">Connect Wallet</button>
+
+  <div id="pot-display">Pot: 0 SOL</div>
+
+  <button onclick="enterGame()">Enter Game (0.1 SOL)</button>
+  <button onclick="payoutWinner()">End Game & Pay Winner</button>
 </div>
 
-<!-- MAIN -->
-<div class="main">
-
-<div class="header">
-  <div>MONET ARCADE</div>
-  <div class="wallet" id="walletBtn" onclick="connectWallet()">Connect</div>
-</div>
-
-<div id="arcade">
-
-<div class="hero">
-  <img src="assets/monetmario.jpg">
-  <h1>THE ARCADE</h1>
-</div>
-
-<div class="grid">
-  <div class="card">
-    <h3>MONET MARIO</h3>
-    <div class="play" onclick="play('mario')">PLAY</div>
-  </div>
-
-  <div class="card">
-    <h3>MONET RUSH</h3>
-    <div class="play" onclick="play('rush')">PLAY</div>
-  </div>
-
-  <div class="card">
-    <h3>MONEY MUNCH</h3>
-    <div class="play" onclick="play('munch')">PLAY</div>
-  </div>
-</div>
-
-</div>
-
-<!-- LEADERBOARD -->
-<div id="leaderboard" style="display:none;">
-  <h2 style="padding:20px;">🏆 Leaderboard</h2>
-  <div id="board"></div>
-</div>
-
-<!-- REWARDS -->
-<div id="rewards" style="display:none;">
-  <h2 style="padding:20px;">🎁 Rewards</h2>
-  <p style="padding:20px;">Coming soon: Earn MONET for high scores</p>
-</div>
-
-</div>
-
-<script>
-let wallet = null;
-
-// WALLET
-async function connectWallet(){
-  if (!window.solana || !window.solana.isPhantom) {
-    alert("Use Phantom browser");
-    return;
-  }
-  const resp = await window.solana.connect();
-  wallet = resp.publicKey.toString();
-  document.getElementById("walletBtn").innerText =
-    wallet.slice(0,4)+"..."+wallet.slice(-4);
-}
-
-// NAV
-function showSection(id){
-  document.getElementById("arcade").style.display="none";
-  document.getElementById("leaderboard").style.display="none";
-  document.getElementById("rewards").style.display="none";
-  document.getElementById(id).style.display="block";
-}
-
-// PLAY
-function play(game){
-  if(!wallet){
-    alert("Connect wallet first");
-    return;
-  }
-
-  // fake score for demo
-  let score = Math.floor(Math.random()*100);
-
-  saveScore(wallet, score);
-
-  window.location.href = "games/"+game+".html";
-}
-
-// LEADERBOARD STORAGE
-function saveScore(wallet, score){
-  let data = JSON.parse(localStorage.getItem("scores")||"[]");
-  data.push({wallet, score});
-  data.sort((a,b)=>b.score-a.score);
-  data = data.slice(0,10);
-  localStorage.setItem("scores", JSON.stringify(data));
-  renderBoard();
-}
-
-function renderBoard(){
-  let data = JSON.parse(localStorage.getItem("scores")||"[]");
-  let html="";
-  data.forEach((e,i)=>{
-    html += `<div class="entry">
-      <span>#${i+1}</span>
-      <span>${e.wallet.slice(0,4)}...${e.wallet.slice(-4)}</span>
-      <span>${e.score}</span>
-    </div>`;
-  });
-  document.getElementById("board").innerHTML = html;
-}
-
-renderBoard();
-</script>
-
-
-<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
-
-<style>
-.wallet-btn {
-  background: linear-gradient(135deg,#00ffcc,#33ff88);
-  color:#000;
-  padding:12px 20px;
-  border-radius:10px;
-  font-weight:bold;
-  border:none;
-  cursor:pointer;
-  box-shadow:0 0 15px rgba(0,255,150,0.5);
-}
-.wallet-btn:hover { transform: scale(1.05); }
-</style>
-
-<script>
-let provider = null;
-
-async function connectWallet() {
-  try {
-<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
-
-<style>
-.game-btn {
-  background: linear-gradient(135deg,#00ffcc,#33ff88);
-  color:#000;
-  padding:12px 20px;
-  border-radius:10px;
-  font-weight:bold;
-  border:none;
-  margin:10px;
-  cursor:pointer;
-  box-shadow:0 0 15px rgba(0,255,150,0.5);
-}
-.game-btn:hover { transform: scale(1.05); }
-</style>
-
-<script>
-const TREASURY = "REPLACE_WITH_YOUR_WALLET";
-const ENTRY_FEE = 0.1;
-
-let wallet = null;
-let pot = Number(localStorage.getItem("monet_pot") || 0);
-
-function updatePotUI(){
-  const el = document.getElementById("pot-display");
-  if(el) el.innerText = "Pot: " + pot.toFixed(2) + " SOL";
-}
-
-async function connectWallet(){
-  if(window.solana){
-    const resp = await window.solana.connect();
-    wallet = resp.publicKey;
-    document.getElementById("connect-wallet").innerText =
-      wallet.toString().slice(0,4)+"..."+wallet.toString().slice(-4);
-  } else {
-    alert("Install Phantom wallet");
-    window.open("https://phantom.app","_blank");
-  }
-}
-
-async function enterGame(){
-  if(!wallet){ alert("Connect wallet first"); return;}
-
-  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
-
-  const tx = new solanaWeb3.Transaction().add(
-    solanaWeb3.SystemProgram.transfer({
-      fromPubkey: wallet,
-      toPubkey: new solanaWeb3.PublicKey(TREASURY),
-      lamports: ENTRY_FEE * solanaWeb3.LAMPORTS_PER_SOL,
-    })
-  );
-
-  tx.feePayer = wallet;
-  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-  const signed = await window.solana.signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize());
-
-  pot += ENTRY_FEE;
-  localStorage.setItem("monet_pot", pot);
-  updatePotUI();
-
-  alert("Entered game! TX: " + sig);
-}
-
-async function payWinner(){
-  const winner = prompt("Enter winner wallet address:");
-  if(!winner) return;
-
-  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
-
-  const winnerAmount = pot * 0.8;
-
-  const tx = new solanaWeb3.Transaction().add(
-    solanaWeb3.SystemProgram.transfer({
-      fromPubkey: wallet,
-      toPubkey: new solanaWeb3.PublicKey(winner),
-      lamports: winnerAmount * solanaWeb3.LAMPORTS_PER_SOL,
-    })
-  );
-
-  tx.feePayer = wallet;
-  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-  const signed = await window.solana.signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize());
-
-  pot = 0;
-  localStorage.setItem("monet_pot", pot);
-  updatePotUI();
-
-  alert("Winner paid! TX: " + sig);
-}
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  updatePotUI();
-  const c = document.getElementById("connect-wallet");
-  if(c) c.onclick = connectWallet;
-});
-</script>
-
-<div id="pot-display" style="color:#00ffcc;font-weight:bold;margin:10px;">Pot: 0 SOL</div>
-<button class="game-btn" onclick="enterGame()">Enter Game (0.1 SOL)</button>
-<button class="game-btn" onclick="payWinner()">Pay Winner</button>
-async function enterGame() {
-  if (!window.solana) {
-    alert("Connect wallet first");
-    return;
-  }
-
-  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
-  const provider = window.solana;
-
-  const resp = await provider.connect();
-  const wallet = resp.publicKey;
-
-  const tx = new solanaWeb3.Transaction().add(
-    solanaWeb3.SystemProgram.transfer({
-      fromPubkey: wallet,
-      toPubkey: new solanaWeb3.PublicKey(TREASURY),
-      lamports: ENTRY_FEE * solanaWeb3.LAMPORTS_PER_SOL,
-    })
-  );
-
-  tx.feePayer = wallet;
-  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-  const signed = await provider.signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize());
-
-  // ✅ VERIFY TRANSACTION BEFORE ADDING TO POT
-  await connection.confirmTransaction(sig, "confirmed");
-
-  // ✅ Send to backend ONLY after confirmed
-  await fetch("/api/pot", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      amount: ENTRY_FEE,
-      tx: sig
-    })
-  });
-
-  alert("Entry confirmed! TX: " + sig);
-}
-<script>
-async function autoPayout(winnerAddress){
-  const res = await fetch("/api/payout", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ winner: winnerAddress })
-  });
-
-  const data = await res.json();
-  alert("Payout TX: " + data.sig);
-}
-</script>
-
-<button class="game-btn" onclick="autoPayout(prompt('Winner wallet:'))">
-  End Game & Pay Winner
-</button>
 <script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
 
 <script>
@@ -423,12 +73,13 @@ async function connectWallet(){
   wallet = resp.publicKey;
 
   document.getElementById("connect-wallet").innerText =
-    wallet.toString().slice(0,4) + "..." + wallet.toString().slice(-4);
+    wallet.toString().slice(0,4)+"..."+wallet.toString().slice(-4);
 }
 
 async function fetchPot(){
   const res = await fetch("/api/pot");
   const data = await res.json();
+
   document.getElementById("pot-display").innerText =
     "Pot: " + data.pot.toFixed(2) + " SOL";
 }
@@ -475,308 +126,21 @@ async function payoutWinner(){
   });
 
   const data = await res.json();
-  alert("Payout TX: " + data.sig);
 
-  fetchPot();
-}
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  fetchPot();
-  const btn = document.getElementById("connect-wallet");
-  if (btn) btn.onclick = connectWallet;
-});
-</script>
-
-<div id="pot-display">Pot: 0 SOL</div>
-<button onclick="enterGame()">Enter Game (0.1 SOL)</button>
-<button onclick="payoutWinner()">End Game & Pay Winner</button>
-    if (window.solana </body></body> window.solana.isPhantom) {
-      provider = window.solana;
-      const resp = await provider.connect();
-      updateUI(resp.publicKey.toString());
-      return;
-    }
-
-    if (window.solflare) {
-      provider = window.solflare;
-      await provider.connect();
-      updateUI(provider.publicKey.toString());
-      return;
-    }
-
-    if (window.backpack) {
-      provider = window.backpack;
-      await provider.connect();
-      updateUI(provider.publicKey.toString());
-      return;
-    }
-
-    alert("No wallet found. Install Phantom / Solflare / Backpack");
-    window.open("https://phantom.app/", "_blank");
-
-  } catch (err) {
-    console.error("Wallet error:", err);
-  }
-}
-
-function updateUI(address) {
-  const btn = document.getElementById("connect-wallet");
-  if (!btn) return;
-  btn.innerText = address.slice(0,4) + "..." + address.slice(-4);
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("connect-wallet");
-  if (btn) btn.addEventListener("click", connectWallet);
-});
-</script>
-<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
-
-<style>
-.game-btn {
-  background: linear-gradient(135deg,#00ffcc,#33ff88);
-  color:#000;
-  padding:12px 20px;
-  border-radius:10px;
-  font-weight:bold;
-  border:none;
-  margin:10px;
-  cursor:pointer;
-  box-shadow:0 0 15px rgba(0,255,150,0.5);
-}
-.game-btn:hover { transform: scale(1.05); }
-</style>
-
-<script>
-const TREASURY = "REPLACE_WITH_YOUR_WALLET";
-const ENTRY_FEE = 0.1;
-
-let wallet = null;
-let pot = Number(localStorage.getItem("monet_pot") || 0);
-
-function updatePotUI(){
-  const el = document.getElementById("pot-display");
-  if(el) el.innerText = "Pot: " + pot.toFixed(2) + " SOL";
-}
-
-async function connectWallet(){
-  if(window.solana){
-    const resp = await window.solana.connect();
-    wallet = resp.publicKey;
-    document.getElementById("connect-wallet").innerText =
-      wallet.toString().slice(0,4)+"..."+wallet.toString().slice(-4);
-  } else {
-    alert("Install Phantom wallet");
-    window.open("https://phantom.app","_blank");
-  }
-}
-
-async function enterGame(){
-  if(!wallet){ alert("Connect wallet first"); return;}
-
-  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
-
-  const tx = new solanaWeb3.Transaction().add(
-    solanaWeb3.SystemProgram.transfer({
-      fromPubkey: wallet,
-      toPubkey: new solanaWeb3.PublicKey(TREASURY),
-      lamports: ENTRY_FEE * solanaWeb3.LAMPORTS_PER_SOL,
-    })
-  );
-
-  tx.feePayer = wallet;
-  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-  const signed = await window.solana.signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize());
-
-  pot += ENTRY_FEE;
-  localStorage.setItem("monet_pot", pot);
-  updatePotUI();
-
-  alert("Entered game! TX: " + sig);
-}
-
-async function payWinner(){
-  const winner = prompt("Enter winner wallet address:");
-  if(!winner) return;
-
-  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
-
-  const winnerAmount = pot * 0.8;
-
-  const tx = new solanaWeb3.Transaction().add(
-    solanaWeb3.SystemProgram.transfer({
-      fromPubkey: wallet,
-      toPubkey: new solanaWeb3.PublicKey(winner),
-      lamports: winnerAmount * solanaWeb3.LAMPORTS_PER_SOL,
-    })
-  );
-
-  tx.feePayer = wallet;
-  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-  const signed = await window.solana.signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize());
-
-  pot = 0;
-  localStorage.setItem("monet_pot", pot);
-  updatePotUI();
-
-  alert("Winner paid! TX: " + sig);
-}
-
-document.addEventListener("DOMContentLoaded", ()=>{
-  updatePotUI();
-  const c = document.getElementById("connect-wallet");
-  if(c) c.onclick = connectWallet;
-});
-</script>
-
-<div id="pot-display" style="color:#00ffcc;font-weight:bold;margin:10px;">Pot: 0 SOL</div>
-<button class="game-btn" onclick="enterGame()">Enter Game (0.1 SOL)</button>
-<button class="game-btn" onclick="payWinner()">Pay Winner</button>
-async function enterGame() {
-  if (!window.solana) {
-    alert("Connect wallet first");
+  if (data.error) {
+    alert(data.error);
     return;
   }
 
-  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
-  const provider = window.solana;
-
-  const resp = await provider.connect();
-  const wallet = resp.publicKey;
-
-  const tx = new solanaWeb3.Transaction().add(
-    solanaWeb3.SystemProgram.transfer({
-      fromPubkey: wallet,
-      toPubkey: new solanaWeb3.PublicKey(TREASURY),
-      lamports: ENTRY_FEE * solanaWeb3.LAMPORTS_PER_SOL,
-    })
-  );
-
-  tx.feePayer = wallet;
-  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-  const signed = await provider.signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize());
-
-  // ✅ VERIFY TRANSACTION BEFORE ADDING TO POT
-  await connection.confirmTransaction(sig, "confirmed");
-
-  // ✅ Send to backend ONLY after confirmed
-  await fetch("/api/pot", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({
-      amount: ENTRY_FEE,
-      tx: sig
-    })
-  });
-
-  alert("Entry confirmed! TX: " + sig);
-}
-<script>
-async function autoPayout(winnerAddress){
-  const res = await fetch("/api/payout", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ winner: winnerAddress })
-  });
-
-  const data = await res.json();
   alert("Payout TX: " + data.sig);
-}
-</script>
-
-<button class="game-btn" onclick="autoPayout(prompt('Winner wallet:'))">
-  End Game & Pay Winner
-</button>
-<script src="https://unpkg.com/@solana/web3.js@latest/lib/index.iife.js"></script>
-
-<script>
-const TREASURY = "2H5yp77LMdAqo8er1znx2jRApyCPExcHVpZPYHKkD68F";
-const ENTRY_FEE = 0.1;
-
-let wallet = null;
-
-async function connectWallet(){
-  if (!window.solana) {
-    alert("Install Phantom wallet");
-    return;
-  }
-
-  const resp = await window.solana.connect();
-  wallet = resp.publicKey;
-
-  document.getElementById("connect-wallet").innerText =
-    wallet.toString().slice(0,4) + "..." + wallet.toString().slice(-4);
-}
-
-async function fetchPot(){
-  const res = await fetch("/api/pot");
-  const data = await res.json();
-  document.getElementById("pot-display").innerText =
-    "Pot: " + data.pot.toFixed(2) + " SOL";
-}
-
-async function enterGame(){
-  if (!wallet) return alert("Connect wallet first");
-
-  const connection = new solanaWeb3.Connection("https://api.mainnet-beta.solana.com");
-
-  const tx = new solanaWeb3.Transaction().add(
-    solanaWeb3.SystemProgram.transfer({
-      fromPubkey: wallet,
-      toPubkey: new solanaWeb3.PublicKey(TREASURY),
-      lamports: ENTRY_FEE * solanaWeb3.LAMPORTS_PER_SOL,
-    })
-  );
-
-  tx.feePayer = wallet;
-  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-
-  const signed = await window.solana.signTransaction(tx);
-  const sig = await connection.sendRawTransaction(signed.serialize());
-
-  await connection.confirmTransaction(sig, "confirmed");
-
-  await fetch("/api/pot", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ amount: ENTRY_FEE, tx: sig })
-  });
-
-  fetchPot();
-  alert("Entered game!");
-}
-
-async function payoutWinner(){
-  const winner = prompt("Winner wallet:");
-  if (!winner) return;
-
-  const res = await fetch("/api/payout", {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({ winner })
-  });
-
-  const data = await res.json();
-  alert("Payout TX: " + data.sig);
-
   fetchPot();
 }
 
 document.addEventListener("DOMContentLoaded", ()=>{
   fetchPot();
-  const btn = document.getElementById("connect-wallet");
-  if (btn) btn.onclick = connectWallet;
+  document.getElementById("connect-wallet").onclick = connectWallet;
 });
 </script>
 
-<div id="pot-display">Pot: 0 SOL</div>
-<button onclick="enterGame()">Enter Game (0.1 SOL)</button>
-<button onclick="payoutWinner()">End Game & Pay Winner</button>
 </body>
 </html>
