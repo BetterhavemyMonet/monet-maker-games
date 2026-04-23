@@ -59,3 +59,23 @@ setTimeout(() => {
   monetEndGame();
 }, 30000);
 </script>
+
+<script>
+// 🔗 Monet hook (call this when your game ends)
+function monetEndGame(winnerWallet){
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: "MONET_GAME_END",
+        winner: winnerWallet
+      }, "*");
+    } else if (typeof endGame === "function") {
+      endGame(winnerWallet);
+    } else {
+      alert("Winner: " + winnerWallet);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+</script>

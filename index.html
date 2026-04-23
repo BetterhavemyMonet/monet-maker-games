@@ -180,5 +180,43 @@ window.addEventListener("message", (e) => {
   }
 });
 </script>
+<script>
+async function endGame(winnerAddress){
+  if (!winnerAddress) {
+    alert("No winner detected");
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/payout", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ winner: winnerAddress })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert("Payout failed: " + data.error);
+      return;
+    }
+
+    alert("🏆 Winner paid!\nTX: " + data.sig);
+
+    if (typeof fetchPot === "function") fetchPot();
+
+  } catch (err) {
+    console.error(err);
+    alert("Payout error");
+  }
+}
+
+// listen for game messages
+window.addEventListener("message", (e) => {
+  if (e.data?.type === "MONET_GAME_END") {
+    endGame(e.data.winner);
+  }
+});
+</script>
 </body>
 </html>
