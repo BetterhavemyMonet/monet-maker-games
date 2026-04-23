@@ -1,27 +1,32 @@
-let pot = 0;
-let seenTx = new Set();
+import { state } from "./state.js";
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method === "GET") {
-    return res.json({ pot });
+    return res.json({ pot: state.pot });
   }
 
   if (req.method === "POST") {
-    const { amount, tx } = req.body;
+    const { amount, tx } = req.body || {};
 
-    if (seenTx.has(tx)) {
-      return res.json({ pot });
+    if (!tx || typeof amount !== "number") {
+      return res.status(400).json({ error: "Invalid payload" });
     }
 
-    seenTx.add(tx);
-    pot += amount;
+    if (state.seenTx.has(tx)) {
+      return res.json({ pot: state.pot });
+    }
 
-    return res.json({ pot });
+    state.seenTx.add(tx);
+    state.pot += amount;
+
+    return res.json({ pot: state.pot });
   }
 
   if (req.method === "DELETE") {
-    pot = 0;
-    seenTx.clear();
-    return res.json({ pot });
+    state.pot = 0;
+    state.seenTx.clear();
+    return res.json({ pot: state.pot });
   }
+
+  return res.status(405).end();
 }
